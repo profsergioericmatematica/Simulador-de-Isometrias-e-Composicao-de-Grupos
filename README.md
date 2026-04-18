@@ -31,9 +31,12 @@ Este laboratório faz parte de uma iniciativa de gamificação para o ensino de 
 
 ## 👨‍🏫 Autor
 
-**Sergio Eric Reis de Oliveira**
+**Sergio Eric**
 - Estudante de Licenciatura em Matemática - UNIVESP
 - Desenvolvedor de Software Pedagógico e Tutor de Matemática
 
+Siga meus projetos e conteúdos educacionais:
+* [![Instagram](https://img.shields.io/badge/Instagram-@prof.sergio.eric.matematica-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/prof.sergio.eric.matematica)
+* [![Instagram](https://img.shields.io/badge/Instagram-@Mente__Algoritmica__Educa.IA-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/Mente_Algoritmica_Educa.IA)
 ---
 *Este projeto está sob a licença [MIT](LICENSE).*
