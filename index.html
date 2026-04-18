@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratório de Simetrias - Mente Algorítmica - Educa IA</title>
+    <style>
+        /* VARIÁVEIS DE TEMA (Claro/Escuro) */
+        :root {
+            --bg-body: #f0f2f5;
+            --bg-header: #2c3e50;
+            --text-header: #ffffff;
+            --bg-panel: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-color: #bdc3c7;
+            --bg-table-head: #ecf0f1;
+            --bg-table-head-hover: #d6eaf8;
+            --bg-identity: #eaf5f0;
+            --canvas-bg: #fafafa;
+            --formula-bg: #e8f8f5;
+            --shadow-color: rgba(0,0,0,0.08);
+            --vertex-a-bg: #f1c40f;
+            --vertex-a-text: #000000;
+            --guess-bg: #eaf2f8;
+            --guess-text: #2980b9;
+            --wrong-bg: #fdedec;
+            --wrong-text: #c0392b;
+            /* CORES DA ÓRBITA - MODO CLARO */
+            --orbit-bg: rgba(52, 152, 219, 0.25);
+            --orbit-border: rgba(83, 52, 219, 0.9);
+            --orbit-shadow: rgba(52, 152, 219, 0.5);
+        }
+
+        body.dark-mode {
+            --bg-body: #121212;
+            --bg-header: #1a252f;
+            --text-header: #ecf0f1;
+            --bg-panel: #1e1e1e;
+            --text-main: #ecf0f1;
+            --text-muted: #bdc3c7;
+            --border-color: #444444;
+            --bg-table-head: #2c3e50;
+            --bg-table-head-hover: #34495e;
+            --bg-identity: #2c3e35;
+            --canvas-bg: #121212;
+            --formula-bg: #1e2a25;
+            --shadow-color: rgba(0,0,0,0.5);
+            --vertex-a-bg: #f39c12;
+            --vertex-a-text: #ffffff;
+            --guess-bg: #154360;
+            --guess-text: #5dade2;
+            --wrong-bg: #641e16;
+            --wrong-text: #e74c3c;
+            /* CORES DA ÓRBITA - MODO ESCURO (BRANCO) */
+            --orbit-bg: rgba(255, 255, 255, 0.25);
+            --orbit-border: rgba(255, 255, 255, 0.9);
+            --orbit-shadow: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Estrutura Principal e Responsividade */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; transition: background-color 0.3s; }
+        header { background-color: var(--bg-header); color: var(--text-header); padding: 12px; text-align: center; flex: 0 0 auto; box-shadow: 0 2px 5px var(--shadow-color); z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 10px 30px;}
+        header h2 { margin: 0; font-size: 22px; flex-grow: 1; text-align: center;}
+        
+        .header-controls { display: flex; gap: 15px; font-size: 14px;}
+        .toggle-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-header); padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .toggle-btn:hover { background: rgba(255,255,255,0.1); }
+        .toggle-btn.active { background: #27ae60; border-color: #27ae60; }
+
+        /* Barra de Ferramentas Simplificada */
+        .toolbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 30px; padding: 15px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color); z-index: 5; flex: 0 0 auto; transition: 0.3s;}
+        .tool-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .tool-group label { font-weight: bold; font-size: 14px; text-transform: uppercase; color: var(--text-main); }
+        
+        select { padding: 8px 15px; border-radius: 6px; border: 2px solid var(--border-color); font-size: 16px; font-weight: bold; background: var(--canvas-bg); color: var(--text-main); cursor: pointer; transition: 0.2s;}
+        select:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Seletor de Modo (Estudo vs Desafio) */
+        .mode-switch { display: flex; border: 2px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .mode-btn { padding: 8px 15px; background: var(--bg-panel); border: none; color: var(--text-main); font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px;}
+        .mode-btn:not(.active):hover { background: var(--bg-table-head); }
+        .mode-btn.active { background: #2980b9; color: white; }
+        .mode-btn.active-challenge { background: #8e44ad; color: white; }
+
+        .exec-btn { padding: 12px 30px; background: #27ae60; color: white; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 16px; transition: 0.3s; box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3); min-width: 280px;}
+        .exec-btn:hover:not(:disabled) { background: #219150; transform: translateY(-1px); }
+        .exec-btn:disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; transform: none; }
+        .exec-btn.next-mode { background: #e67e22; box-shadow: 0 2px 5px rgba(230, 126, 34, 0.4); animation: pulseBtn 1.5s infinite; }
+        .exec-btn.next-mode:hover { background: #d35400; }
+
+        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+
+        /* Área Principal de Trabalho */
+        main { flex: 1; display: flex; flex-direction: row; justify-content: center; align-items: stretch; gap: 2vw; padding: 20px; box-sizing: border-box; overflow-y: auto; flex-wrap: wrap; }
+        .panel { background: var(--bg-panel); padding: 20px; border-radius: 12px; box-shadow: 0 6px 15px var(--shadow-color); display: flex; flex-direction: column; align-items: center; transition: background-color 0.3s; max-width: 100%;}
+        
+        /* Coluna 1: Animação */
+        .canvas-area { width: 360px; height: 360px; display: flex; justify-content: center; align-items: center; position: relative; background: var(--canvas-bg); border: 2px solid var(--border-color); border-radius: 10px; overflow: hidden; transition: 0.3s;}
+        #axesLayer { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+        .axis-line { position: absolute; width: 150%; height: 2px; background: repeating-linear-gradient(to right, transparent, transparent 6px, var(--border-color) 6px, var(--border-color) 12px); top: calc(50% - 1px); left: -25%; transform-origin: center center; }
+        .axis-label { position: absolute; font-weight: bold; color: #c0392b; font-size: 16px; background: var(--canvas-bg); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); z-index: 2; opacity: 0.8;}
+        
+        /* Efeito visual corrigido para as Órbitas */
+
+        .show-orbits .orbit-dot { display: block; animation: breathe 2.5s infinite ease-in-out; }
+        .orbit-dot { position: absolute; width: 50px; height: 50px; background: var(--orbit-bg); border: 3px dashed var(--orbit-border); border-radius: 50%; transform: translate(-50%, -50%); z-index: 20; display: none; pointer-events: none; box-shadow: 0 0 10px var(--orbit-shadow); }
+        @keyframes breathe { 0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.15) rotate(15deg); opacity: 1; } }
+
+        #mainShape { width: 360px; height: 360px; position: absolute; transform-origin: 180px 180px; z-index: 5; transition: transform 0.8s ease-in-out; }
+        .vertex { position: absolute; background: #2c3e50; color: white; width: 30px; height: 30px; margin-top: -15px; margin-left: -15px; border-radius: 50%; font-size: 15px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .vertex.destaque-a { background: var(--vertex-a-bg) !important; color: var(--vertex-a-text) !important; font-size: 18px; width: 38px; height: 38px; margin-top: -19px; margin-left: -19px; box-shadow: 0 0 12px var(--vertex-a-bg); border: 3px solid #fff; z-index: 11; }
+
+        /* Coluna 2: Sequência */
+        .sequence-panel { min-width: 180px; justify-content: flex-start; padding-top: 15px; }
+        .sequence-panel h4 { margin: 0 0 10px 0; font-size: 18px; color: var(--text-main); }
+        .seq-placeholder { font-size: 16px; font-weight: bold; font-style: italic; text-align: center; margin-top: 50px; color: var(--text-muted); }
+        
+        .seq-step { display: flex; flex-direction: column; align-items: center; font-size: 15px; color: var(--text-main); text-align: center; background: var(--canvas-bg); padding: 12px 5px; border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-color); width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); margin: 0;}
+        .seq-shape-container { width: 120px; height: 120px; position: relative; margin-top: 10px; overflow: hidden; border-radius: 4px; background: var(--bg-body); border: 1px solid var(--border-color);}
+        .arrow { font-size: 26px; color: var(--text-muted); font-weight: bold; margin: 8px 0; text-align: center; }
+
+        /* Coluna 3: Tabela Interativa e Quiz */
+        .table-panel h3 { margin: 0 0 5px 0; font-size: 20px;}
+        .table-instruction { font-size: 15px; margin-bottom: 10px; font-weight: bold; text-align: center; color: #e67e22; min-height: 45px; transition: color 0.3s; display: flex; align-items: center; justify-content: center;}
+        .table-instruction.success { color: #27ae60; }
+        .table-instruction.error { color: #e74c3c; }
+        .table-instruction.challenge { color: #8e44ad; }
+        
+        /* Botões de Resposta do Quiz */
+        .quiz-options-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; min-height: 40px; }
+        .quiz-btn { padding: 8px 16px; border: 2px solid #8e44ad; background: transparent; color: #8e44ad; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
+        .quiz-btn:hover { background: #8e44ad; color: white; }
+        .quiz-btn.selected { background: #8e44ad; color: white; border-color: #8e44ad; transform: scale(1.05); }
+
+        .table-layout { display: flex; flex-direction: row; gap: 20px; align-items: flex-start; justify-content: center; width: 100%; flex-wrap: wrap;}
+        
+        table { border-collapse: collapse; box-shadow: 0 2px 8px var(--shadow-color); border-radius: 8px; overflow: visible; background: var(--bg-panel); color: var(--text-main);}
+        th, td { border: 1px solid var(--border-color); width: 50px; height: 50px; text-align: center; font-size: 18px; }
+        
+        th.clickable-header { background: var(--bg-table-head); color: var(--text-table-head); font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; position: relative; outline: none;}
+        th.clickable-header:focus-visible { box-shadow: 0 0 0 3px #3498db inset; }
+        th.clickable-header:hover:not(.disabled) { background: var(--bg-table-head-hover); }
+        th.clickable-header.active { background: #27ae60; color: white; border-color: #219150; box-shadow: 0 0 10px rgba(39, 174, 96, 0.5); transform: scale(1.08); z-index: 10; }
+        th.clickable-header.active-challenge { background: #8e44ad; color: white; border-color: #732d91; box-shadow: 0 0 10px rgba(142, 68, 173, 0.5); transform: scale(1.08); z-index: 10; }
+        th.clickable-header.disabled { opacity: 0.5; cursor: not-allowed; }
+        th.corner { background: var(--border-color); color: var(--bg-panel); font-size: 20px; cursor: default; }
+        
+        td.identity-cell { background-color: var(--bg-identity); }
+        td.filled { background: var(--formula-bg); color: #27ae60; font-weight: bold; font-size: 20px;}
+        td.highlight { background: #fff3cd !important; color: #d35400 !important; animation: pulse 0.5s; border: 3px solid #f39c12; font-size: 22px; position: relative; z-index: 5;}
+        
+        /* Células Específicas do Quiz */
+        td.td-guess { background: var(--guess-bg) !important; color: var(--guess-text) !important; border: 2px dashed #8e44ad !important; font-size: 22px; font-weight: bold; animation: pulseGuess 1.5s infinite;}
+        td.td-wrong { background: var(--wrong-bg) !important; color: var(--wrong-text) !important; border: 3px solid #e74c3c !important; font-size: 22px; animation: shake 0.4s; position: relative; z-index: 5;}
+        
+        @keyframes pulseGuess { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+
+        .legend-box { background: var(--canvas-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; width: 220px; font-size: 14px; box-shadow: 0 2px 5px var(--shadow-color); }
+        .legend-box h4 { margin: 0 0 10px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; text-align: center; }
+        .legend-box ul { list-style: none; padding: 0; margin: 0; }
+        .legend-box li { margin-bottom: 8px; line-height: 1.4; }
+        .legend-box strong { color: #2980b9; display: inline-block; width: 35px; font-size: 16px; }
+
+        .formula-container { width: 100%; display: flex; justify-content: center; min-height: 60px; margin-top: 15px;}
+        .math-formula-box { padding: 12px 25px; background-color: var(--formula-bg); border: 2px solid #27ae60; border-radius: 8px; font-size: 22px; text-align: center; box-shadow: 0 4px 6px var(--shadow-color); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .math-formula-box.error-box { background-color: var(--wrong-bg); border-color: #e74c3c; }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        footer { background: var(--bg-header); color: var(--text-muted); padding: 15px; text-align: center; font-size: 15px; flex: 0 0 auto; }
+        .insta-link { color: #ffffff; text-decoration: none; font-weight: bold; transition: color 0.3s ease; }
+        .insta-link:hover { color: #f1c40f; text-decoration: underline; }
+
+        @media print {
+            body * { visibility: hidden; }
+            .table-panel, .table-panel * { visibility: visible; }
+            .table-panel { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+            .table-instruction, .formula-container, .quiz-options-container { display: none !important; }
+        }
+
+        @media (max-width: 1000px) {
+            body { height: auto; overflow-y: auto; }
+            header { flex-direction: column; gap: 10px; }
+            main { flex-direction: column; align-items: center; padding: 10px; }
+            .panel { width: 95%; max-width: 500px; }
+            .sequence-panel { flex-direction: row; flex-wrap: wrap; justify-content: space-around; padding-bottom: 20px;}
+            .sequence-panel h4, .seq-placeholder { width: 100%; }
+            .arrow { transform: rotate(-90deg); margin: 0 10px; }
+            .seq-step { width: auto; min-width: 130px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>Simulador de Isometrias e Composição de Grupos</h2>
+    <div class="header-controls">
+        <button id="themeToggle" class="toggle-btn" title="Alternar entre modo claro e escuro para conforto visual" aria-label="Alternar Tema Escuro">🌙 Tema</button>
+        <button id="soundToggle" class="toggle-btn active" title="Ativar ou desativar os efeitos sonoros" aria-label="Alternar Som">🔈 Som</button>
+        <button id="orbitToggle" class="toggle-btn" title="Mostrar Órbitas: Exibe todas as posições matemáticas que os vértices podem alcançar" aria-label="Mostrar Órbitas">👁️ Órbitas</button>
+        <button id="printBtn" class="toggle-btn" title="Gerar um PDF ou Imprimir a Tabela de Cayley atual" onclick="window.print()" aria-label="Exportar Tabela">🖨️ PDF</button>
+    </div>
+</header>
+
+<div class="toolbar">
+    <div class="tool-group">
+        <label for="groupSelect">1. Figura Geométrica</label>
+        <select id="groupSelect" title="Selecione o polígono (D2, D3 ou D4) para carregar sua tabela de simetrias" aria-label="Selecione a Figura Geométrica">
+            <option value="D2">Retângulo (Grupo D2)</option>
+            <option value="D3">Triângulo (Grupo D3)</option>
+            <option value="D4">Quadrado (Grupo D4)</option>
+        </select>
+    </div>
+    <div class="tool-group">
+        <label>2. Modo de Uso</label>
+        <div class="mode-switch">
+            <button id="modeEstudo" class="mode-btn active" title="Modo Estudo: Escolha as ações e veja o resultado automaticamente" onclick="setMode('estudo')">📖 Estudo</button>
+            <button id="modeDesafio" class="mode-btn" title="Modo Desafio: Tente prever o resultado geométrico antes da animação acontecer!" onclick="setMode('desafio')">🎯 Desafio</button>
+        </div>
+    </div>
+    <div class="tool-group" style="margin-left: 10px;">
+        <label>3. Controle da Animação</label>
+        <button id="runBtn" class="exec-btn" title="Clique para rodar a simulação visual com as ações escolhidas" aria-label="Executar Animação">Aguardando Escolhas...</button>
+    </div>
+</div>
+
+<main>
+    <div class="panel">
+        <h3 style="margin-top:0;">Transformação</h3>
+        <div id="canvasArea" class="canvas-area">
+            <div id="axesLayer"></div>
+            <div id="mainShape" aria-label="Figura Geométrica Animada"></div>
+        </div>
+    </div>
+
+    <div class="panel sequence-panel" id="sequencePanel">
+        <h4>Sequência de Passos</h4>
+        <span class="seq-placeholder">A sequência do movimento aparecerá aqui...</span>
+    </div>
+
+    <div class="panel table-panel" style="flex: 1 1 auto; max-width: 600px;">
+        <h3>Tabela de Cayley</h3>
+        <div id="instructionText" class="table-instruction" aria-live="polite">👉 Clique na COLUNA (1ª Ação) no topo da tabela.</div>
+        
+        <div id="quizOptions" class="quiz-options-container" style="display: none;"></div>
+        
+        <div class="table-layout">
+            <div id="tableContainer"></div>
+            <div id="legendContainer" class="legend-box"></div>
+        </div>
+        
+        <div id="formulaContainer" class="formula-container" aria-live="assertive"></div>
+    </div>
+</main>
+
+<footer>
+    <div>© 2026 Mente Algorítmica - Educa IA - Prof. Sergio Eric</div>
+    <div class="footer-info">Me sigam no Instagram: 
+    <a href="https://www.instagram.com/prof.sergio.eric.matematica" target="_blank" rel="noopener noreferrer" class="insta-link">@prof.sergio.eric.matematica</a> e 
+    <a href="https://www.instagram.com/Mente_Algoritmica_Educa.IA" target="_blank" rel="noopener noreferrer" class="insta-link">@Mente_Algoritmica_Educa.IA</a>
+    </div>
+</footer>
+
+<script>
+    // --- CONFIGURAÇÃO MATEMÁTICA ---
+    const config = {
+        'D2': { els: ['I', 'rx', 'ry', 'p_pi'], trans: { 'I': '', 'rx': 'scaleY(-1)', 'ry': 'scaleX(-1)', 'p_pi': 'rotate(180deg)' }, map: { 'I': {'I':'I', 'rx':'rx', 'ry':'ry', 'p_pi':'p_pi'}, 'rx': {'I':'rx', 'rx':'I', 'ry':'p_pi', 'p_pi':'ry'}, 'ry': {'I':'ry', 'rx':'p_pi', 'ry':'I', 'p_pi':'rx'}, 'p_pi': {'I':'p_pi', 'rx':'ry', 'ry':'rx', 'p_pi':'I'} }, orbits: [{x:70, y:120},{x:290,y:120},{x:290,y:240},{x:70,y:240}] },
+        'D3': { els: ['I', 'p', 'q', 'r', 't', 's'], trans: { 'I': '', 'p': 'rotate(-120deg)', 'q': 'rotate(-240deg)', 'r': 'scaleX(-1)', 't': 'rotate(-120deg) scaleX(-1)', 's': 'rotate(-240deg) scaleX(-1)' }, map: { 'I': {'I':'I', 'p':'p', 'q':'q', 'r':'r', 't':'t', 's':'s'}, 'p': {'I':'p', 'p':'q', 'q':'I', 'r':'t', 't':'s', 's':'r'}, 'q': {'I':'q', 'p':'I', 'q':'p', 'r':'s', 't':'r', 's':'t'}, 'r': {'I':'r', 'p':'s', 'q':'t', 'r':'I', 't':'q', 's':'p'}, 't': {'I':'t', 'p':'r', 'q':'s', 'r':'p', 't':'I', 's':'q'}, 's': {'I':'s', 'p':'t', 'q':'r', 'r':'q', 't':'p', 's':'I'} }, orbits: [{x:180,y:70},{x:84.7,y:235},{x:275.3,y:235}] },
+        'D4': { els: ['I', 'r', 'r2', 'r3', 't', 'tr', 'tr2', 'tr3'], trans: { 'I': '', 'r': 'rotate(-90deg)', 'r2': 'rotate(-180deg)', 'r3': 'rotate(-270deg)', 't': 'scaleX(-1)', 'tr': 'rotate(-90deg) scaleX(-1)', 'tr2': 'rotate(-180deg) scaleX(-1)', 'tr3': 'rotate(-270deg) scaleX(-1)' }, map: { 'I': {'I':'I', 'r':'r', 'r2':'r2', 'r3':'r3', 't':'t', 'tr':'tr', 'tr2':'tr2', 'tr3':'tr3'}, 'r': {'I':'r', 'r':'r2', 'r2':'r3', 'r3':'I', 't':'tr3', 'tr':'t', 'tr2':'tr', 'tr3':'tr2'}, 'r2': {'I':'r2', 'r':'r3', 'r2':'I', 'r3':'r', 't':'tr2', 'tr':'tr3', 'tr2':'t', 'tr3':'tr'}, 'r3': {'I':'r3', 'r':'I', 'r2':'r', 'r3':'r2', 't':'tr', 'tr':'tr2', 'tr2':'tr3', 'tr3':'t'}, 't': {'I':'t', 'r':'tr', 'r2':'tr2', 'r3':'tr3', 't':'I', 'tr':'r', 'tr2':'r2', 'tr3':'r3'}, 'tr': {'I':'tr', 'r':'tr2', 'r2':'tr3', 'r3':'t', 't':'r3', 'tr':'I', 'tr2':'r', 'tr3':'r2'}, 'tr2': {'I':'tr2', 'r':'tr3', 'r2':'t', 'r3':'tr', 't':'r2', 'tr':'r3', 'tr2':'I', 'tr3':'r'}, 'tr3': {'I':'tr3', 'r':'t', 'r2':'tr', 'r3':'tr2', 't':'r', 'tr':'r2', 'tr2':'r3', 'tr3':'I'} }, orbits: [{x:90,y:90},{x:270,y:90},{x:270,y:270},{x:90,y:270}] }
+    };
+
+    function formatText(s) {
+        if(!s) return '';
+        return s.replace('p_pi', '&rho;<sub>&pi;</sub>')
+                .replace('rx', 'r<sub>x</sub>')
+                .replace('ry', 'r<sub>y</sub>')
+                .replace('r2', 'r<sup>2</sup>')
+                .replace('r3', 'r<sup>3</sup>')
+                .replace('tr2', 'tr<sup>2</sup>')
+                .replace('tr3', 'tr<sup>3</sup>');
+    }
+
+    const legendData = {
+        'D2': `<ul><li><strong>I</strong>: Identidade (Início)</li><li><strong>r<sub>x</sub></strong>: Reflexão Eixo X</li><li><strong>r<sub>y</sub></strong>: Reflexão Eixo Y</li><li><strong>&rho;<sub>&pi;</sub></strong>: Rotação 180&deg;</li></ul>`,
+        'D3': `<ul><li><strong>I</strong>: Identidade</li><li><strong>p, q</strong>: Rotação 120&deg; e 240&deg;</li><li><strong>r, s, t</strong>: Reflexões nos três eixos</li></ul>`,
+        'D4': `<ul><li><strong>I</strong>: Identidade</li><li><strong>r, r<sup>2</sup>, r<sup>3</sup></strong>: Rotações 90&deg;, 180&deg;, 270&deg;</li><li><strong>t, tr<sup>2</sup></strong>: Reflexões Centrais</li><li><strong>tr, tr<sup>3</sup></strong>: Reflexões Diagonais</li></ul>`
+    };
+
+    // --- VARIÁVEIS DE ESTADO ---
+    const tableMemory = { 'D2': {}, 'D3': {}, 'D4': {} };
+    let curGroup = 'D2';
+    let currentMode = 'estudo'; // 'estudo' ou 'desafio'
+    let selCol = null, selRow = null;
+    let isNextMode = false;
+    let isAnimating = false;
+    let quizGuess = null;
+    let soundEnabled = true;
+
+    // --- ÁUDIO (Feedback Sonoro) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    function playBeep(type) {
+        if(!soundEnabled) return;
+        if(!audioCtx) audioCtx = new AudioContext();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        
+        if(type === 'click') { 
+            osc.type = 'sine'; osc.frequency.value = 600; 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05); 
+        }
+        if(type === 'success') { 
+            osc.type = 'sine'; osc.frequency.value = 880; 
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime); 
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15); 
+        }
+        if(type === 'error') { 
+            osc.type = 'sawtooth'; 
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime); 
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3); 
+        }
+    }
+
+    // --- INICIALIZAÇÃO ---
+    function init() {
+        curGroup = document.getElementById('groupSelect').value;
+        resetSelectionState();
+        
+        document.getElementById('legendContainer').innerHTML = '<h4>Legenda de Ações</h4>' + legendData[curGroup];
+        
+        renderAxes();
+        renderOrbits();
+        renderShape(); 
+        renderTable();
+    }
+
+    function resetSelectionState() {
+        selCol = selRow = null;
+        isNextMode = false;
+        isAnimating = false;
+        quizGuess = null;
+        
+        document.getElementById('sequencePanel').innerHTML = '<h4>Sequência de Passos</h4><span class="seq-placeholder">A sequência do movimento aparecerá aqui...</span>';
+        document.getElementById('formulaContainer').innerHTML = ''; 
+        document.getElementById('quizOptions').style.display = 'none';
+        
+        const runBtn = document.getElementById('runBtn');
+        runBtn.textContent = 'Aguardando Escolhas...';
+        runBtn.classList.remove('next-mode');
+        runBtn.disabled = true;
+        
+        enableControls(true);
+        
+        document.querySelectorAll('.clickable-header').forEach(h => h.classList.remove('active', 'active-challenge'));
+        document.querySelectorAll('td').forEach(t => t.classList.remove('highlight', 'td-guess', 'td-wrong'));
+
+        if(currentMode === 'estudo') {
+            updateInstruction('👉 Clique na <strong>COLUNA</strong> (1ª Ação) no topo da tabela.');
+        } else {
+            updateInstruction('🎯 <strong>MODO DESAFIO:</strong> Escolha a Coluna e a Linha para criar o teste.', 'challenge');
+        }
+    }
+
+    window.setMode = function(mode) {
+        if(isAnimating) return;
+        currentMode = mode;
+        playBeep('click');
+        
+        document.getElementById('modeEstudo').classList.remove('active');
+        document.getElementById('modeDesafio').classList.remove('active-challenge');
+        
+        if(mode === 'estudo') {
+            document.getElementById('modeEstudo').classList.add('active');
+        } else {
+            document.getElementById('modeDesafio').classList.add('active-challenge');
+        }
+        
+        // Renderiza a tabela limpa preservando a memória
+        renderTable();
+        resetSelectionState();
+    }
+
+    function updateInstruction(msg, type='normal') {
+        const el = document.getElementById('instructionText');
+        el.innerHTML = msg;
+        el.className = 'table-instruction';
+        if(type==='success') el.classList.add('success');
+        if(type==='error') el.classList.add('error');
+        if(type==='challenge') el.classList.add('challenge');
+    }
+
+    // --- RENDERIZAÇÃO GEOMÉTRICA ---
+    function renderAxes() {
+        const axesLayer = document.getElementById('axesLayer');
+        let html = '';
+        if (curGroup === 'D2') {
+            html += '<div class="axis-line" style="transform: rotate(0deg);"></div><div class="axis-label" style="top: 50%; right: 5px; transform: translateY(-50%);">r<sub>x</sub></div>';
+            html += '<div class="axis-line" style="transform: rotate(90deg);"></div><div class="axis-label" style="top: 5px; left: 50%; transform: translateX(-50%);">r<sub>y</sub></div>';
+        } else if (curGroup === 'D3') {
+            html += '<div class="axis-line" style="transform: rotate(90deg);"></div><div class="axis-label" style="top: 5px; left: 50%; transform: translateX(-50%);">r</div>';
+            html += '<div class="axis-line" style="transform: rotate(150deg);"></div><div class="axis-label" style="bottom: 45px; left: 20px;">s</div>';
+            html += '<div class="axis-line" style="transform: rotate(30deg);"></div><div class="axis-label" style="bottom: 45px; right: 20px;">t</div>';
+        } else if (curGroup === 'D4') {
+            html += '<div class="axis-line" style="transform: rotate(90deg);"></div><div class="axis-label" style="top: 5px; left: 50%; transform: translateX(-50%);">t</div>';
+            html += '<div class="axis-line" style="transform: rotate(0deg);"></div><div class="axis-label" style="top: 50%; right: 5px; transform: translateY(-50%);">tr<sup>2</sup></div>';
+            html += '<div class="axis-line" style="transform: rotate(-45deg);"></div><div class="axis-label" style="top: 25px; right: 25px;">tr</div>';
+            html += '<div class="axis-line" style="transform: rotate(45deg);"></div><div class="axis-label" style="bottom: 25px; right: 25px;">tr<sup>3</sup></div>';
+        }
+        axesLayer.innerHTML = html;
+    }
+
+    function renderOrbits() {
+        document.querySelectorAll('.orbit-dot').forEach(el => el.remove());
+        const canvas = document.getElementById('canvasArea');
+        config[curGroup].orbits.forEach(pos => {
+            const dot = document.createElement('div');
+            dot.className = 'orbit-dot';
+            dot.style.left = pos.x + 'px';
+            dot.style.top = pos.y + 'px';
+            canvas.appendChild(dot);
+        });
+    }
+
+    function renderShape() {
+        const shape = document.getElementById('mainShape');
+        shape.style.transition = 'none'; 
+        shape.style.transform = '';
+        shape.innerHTML = '';
+        
+        let html = '';
+        if (curGroup === 'D2') {
+            html += '<div style="position:absolute; width:212px; height:112px; background:#3498db; border:4px solid #2980b9; border-radius:8px; top:120px; left:70px;"></div>';
+            html += '<div class="vertex destaque-a" style="top:120px; left:70px;">A</div>';
+            html += '<div class="vertex" style="top:120px; left:290px;">B</div>';
+            html += '<div class="vertex" style="top:240px; left:290px;">C</div>';
+            html += '<div class="vertex" style="top:240px; left:70px;">D</div>';
+        } else if (curGroup === 'D4') {
+            html += '<div style="position:absolute; width:172px; height:172px; background:#e74c3c; border:4px solid #c0392b; border-radius:8px; top:90px; left:90px;"></div>';
+            html += '<div class="vertex destaque-a" style="top:90px; left:90px;">A</div>';
+            html += '<div class="vertex" style="top:90px; left:270px;">B</div>';
+            html += '<div class="vertex" style="top:270px; left:270px;">C</div>';
+            html += '<div class="vertex" style="top:270px; left:90px;">D</div>';
+        } else if (curGroup === 'D3') {
+            html += '<svg style="position:absolute; top:0; left:0; width:360px; height:360px;"><polygon points="180,70 84.7,235 275.3,235" fill="#2ecc71" stroke="#27ae60" stroke-width="4" stroke-linejoin="round"/></svg>';
+            html += '<div class="vertex destaque-a" style="top:70px; left:180px;">A</div>';
+            html += '<div class="vertex" style="top:235px; left:84.7px;">B</div>';
+            html += '<div class="vertex" style="top:235px; left:275.3px;">C</div>';
+        }
+        shape.innerHTML = html;
+    }
+
+    // --- TABELA E INTERAÇÃO ---
+    function renderTable() {
+        let html = '<table><tr><th class="corner">∘</th>';
+        config[curGroup].els.forEach(c => { 
+            html += `<th id="col-head-${c}" class="clickable-header col-header" tabindex="0" onclick="selectAction('col', '${c}')" title="Selecionar ${formatText(c)} como 1ª Ação na Coluna">${formatText(c)}</th>`;
+        });
+        html += '</tr>';
+        
+        config[curGroup].els.forEach(r => { 
+            html += '<tr>';
+            html += `<th id="row-head-${r}" class="clickable-header row-header" tabindex="0" onclick="selectAction('row', '${r}')" title="Selecionar ${formatText(r)} como 2ª Ação na Linha">${formatText(r)}</th>`;
+            
+            config[curGroup].els.forEach(c => {
+                const memVal = tableMemory[curGroup][`${r}-${c}`];
+                const text = memVal ? formatText(memVal) : '?';
+                const cls = memVal ? 'filled' : '';
+                const idCls = (r==='I' || c==='I') ? 'identity-cell' : '';
+                html += `<td id="td-${r}-${c}" class="${cls} ${idCls}">${text}</td>`;
+            });
+            html += '</tr>'; 
+        });
+        document.getElementById('tableContainer').innerHTML = html;
+    }
+
+    window.selectAction = function(type, val) {
+        if (isAnimating) return; 
+        playBeep('click');
+        
+        const activeClass = currentMode === 'estudo' ? 'active' : 'active-challenge';
+
+        if (type === 'col') {
+            selCol = val;
+            document.querySelectorAll('.col-header').forEach(el => el.classList.remove('active', 'active-challenge'));
+        } else {
+            selRow = val;
+            document.querySelectorAll('.row-header').forEach(el => el.classList.remove('active', 'active-challenge'));
+        }
+        document.getElementById(`${type}-head-${val}`).classList.add(activeClass);
+        
+        // Verifica se ambas as seleções foram feitas
+        if (selCol && selRow) {
+            document.querySelectorAll('td').forEach(t => t.classList.remove('highlight', 'td-guess', 'td-wrong'));
+            const targetCell = document.getElementById(`td-${selRow}-${selCol}`);
+
+            if (currentMode === 'estudo') {
+                targetCell.classList.add('highlight');
+                if(!tableMemory[curGroup][`${selRow}-${selCol}`]) targetCell.textContent = '?';
+                
+                updateInstruction('✅ Tudo pronto! Clique em <strong>Executar Animação</strong>.', 'success');
+                const rBtn = document.getElementById('runBtn');
+                rBtn.disabled = false;
+                rBtn.textContent = 'Executar Animação';
+                
+            } else if (currentMode === 'desafio') {
+                targetCell.classList.add('td-guess');
+                targetCell.textContent = '?';
+                
+                showQuizOptions();
+                updateInstruction(`🎯 <strong>DESAFIO:</strong> Qual o resultado de ${formatText(selRow)} ∘ ${formatText(selCol)}? Marque sua resposta acima!`, 'challenge');
+                
+                const rBtn = document.getElementById('runBtn');
+                rBtn.disabled = true;
+                rBtn.textContent = 'Aguardando Resposta...';
+            }
+        } else {
+            // Faltando uma das seleções
+            document.getElementById('quizOptions').style.display = 'none';
+            document.getElementById('runBtn').disabled = true;
+            
+            if(currentMode === 'estudo') {
+                if (type === 'col') updateInstruction('👉 Agora clique na <strong>LINHA</strong> (2ª Ação) na lateral.');
+                if (type === 'row') updateInstruction('👉 Agora clique na <strong>COLUNA</strong> (1ª Ação) no topo.');
+            } else {
+                if (type === 'col') updateInstruction('🎯 Desafio: Agora escolha a <strong>LINHA</strong> na lateral.');
+                if (type === 'row') updateInstruction('🎯 Desafio: Agora escolha a <strong>COLUNA</strong> no topo.');
+            }
+        }
+    };
+
+    function showQuizOptions() {
+        const qOpts = document.getElementById('quizOptions');
+        qOpts.style.display = 'flex';
+        qOpts.innerHTML = '';
+        config[curGroup].els.forEach(e => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-btn';
+            btn.innerHTML = formatText(e);
+            btn.title = `Acho que a resposta é ${formatText(e)}`;
+            btn.onclick = () => {
+                playBeep('click');
+                document.querySelectorAll('.quiz-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                quizGuess = e;
+
+                const targetCell = document.getElementById(`td-${selRow}-${selCol}`);
+                targetCell.innerHTML = formatText(e);
+
+                const rBtn = document.getElementById('runBtn');
+                rBtn.disabled = false;
+                rBtn.textContent = 'Verificar Resposta e Animar';
+                updateInstruction(`✅ Resposta cravada! Clique em <strong>Verificar Resposta e Animar</strong>.`, 'success');
+            };
+            qOpts.appendChild(btn);
+        });
+    }
+
+    function enableControls(enable) {
+        document.getElementById('groupSelect').disabled = !enable;
+        document.querySelectorAll('.mode-btn').forEach(b => b.disabled = !enable);
+        const headers = document.querySelectorAll('.clickable-header');
+        if(enable) {
+            headers.forEach(h => h.classList.remove('disabled'));
+        } else {
+            headers.forEach(h => h.classList.add('disabled'));
+        }
+    }
+
+    // --- ANIMAÇÃO E SEQUÊNCIA ---
+    function appendMiniStep(label, transformStr) {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'seq-step';
+        stepDiv.innerHTML = `<strong>${label}</strong>`;
+        
+        const shapeWrap = document.createElement('div');
+        shapeWrap.className = 'seq-shape-container';
+        
+        const scaleWrap = document.createElement('div');
+        scaleWrap.style.width = '360px'; scaleWrap.style.height = '360px';
+        scaleWrap.style.position = 'absolute';
+        scaleWrap.style.transform = 'scale(0.25)'; 
+        scaleWrap.style.transformOrigin = '0 0';
+        scaleWrap.style.top = '15px'; 
+        scaleWrap.style.left = '15px';
+        
+        const clonedShape = document.getElementById('mainShape').cloneNode(true);
+        clonedShape.id = ''; 
+        clonedShape.style.width = '360px'; clonedShape.style.height = '360px';
+        clonedShape.style.position = 'absolute';
+        clonedShape.style.transformOrigin = '180px 180px';
+        clonedShape.style.transition = 'none';
+        clonedShape.style.transform = transformStr;
+        
+        scaleWrap.appendChild(clonedShape);
+        shapeWrap.appendChild(scaleWrap);
+        stepDiv.appendChild(shapeWrap);
+        document.getElementById('sequencePanel').appendChild(stepDiv);
+    }
+
+    function appendArrow() {
+        const arrow = document.createElement('div');
+        arrow.className = 'arrow';
+        arrow.innerHTML = '⬇';
+        document.getElementById('sequencePanel').appendChild(arrow);
+    }
+
+    // --- LÓGICA PRINCIPAL (RUN) ---
+    document.getElementById('runBtn').onclick = async () => {
+        if (isAnimating) return;
+        const runBtn = document.getElementById('runBtn');
+
+        if (isNextMode) {
+            resetSelectionState();
+            renderShape();
+            return;
+        }
+
+        if(!selCol || !selRow) {
+            updateInstruction('⚠️ Falta selecionar a Linha ou a Coluna na tabela!', 'error');
+            return;
+        }
+        
+        isAnimating = true;
+        enableControls(false); 
+        runBtn.disabled = true;
+        runBtn.textContent = 'Animando...';
+        updateInstruction('⏳ Observe a figura geométrica...', 'normal');
+        
+        // Esconde botões do quiz durante animação
+        document.getElementById('quizOptions').style.display = 'none';
+
+        const shape = document.getElementById('mainShape');
+        shape.style.transition = 'none'; 
+        shape.style.transform = '';
+        
+        const seqPanel = document.getElementById('sequencePanel');
+        seqPanel.innerHTML = '<h4>Sequência de Passos</h4>';
+        appendMiniStep('Estado Inicial (I)', '');
+
+        await new Promise(r => setTimeout(r, 50));
+        
+        shape.style.transition = 'transform 1s cubic-bezier(0.25, 1, 0.5, 1)';
+        shape.style.transform = config[curGroup].trans[selCol];
+        await new Promise(r => setTimeout(r, 1200));
+        
+        playBeep('click');
+        appendArrow();
+        appendMiniStep(`1ª Ação (${formatText(selCol)})`, config[curGroup].trans[selCol]);
+
+        const res = config[curGroup].map[selRow][selCol];
+        shape.style.transform = config[curGroup].trans[res];
+        await new Promise(r => setTimeout(r, 1200));
+        
+        appendArrow();
+        appendMiniStep(`2ª Ação (${formatText(selRow)})<br><span style="color:#27ae60; font-size:18px;">= ${formatText(res)}</span>`, config[curGroup].trans[res]);
+
+        const cell = document.getElementById(`td-${selRow}-${selCol}`);
+
+        // --- VERIFICAÇÃO DO RESULTADO ---
+        if (currentMode === 'desafio') {
+            if (quizGuess === res) {
+                playBeep('success');
+                cell.className = 'filled highlight';
+                updateInstruction('🎉 Brilhante! Sua hipótese estava correta.', 'success');
+                document.getElementById('formulaContainer').innerHTML = `
+                    <div class="math-formula-box">
+                        <strong>${formatText(selRow)} <span style="color:var(--text-muted); font-size: 20px; vertical-align: middle;">∘</span> ${formatText(selCol)} = <span style="color:#27ae60;">${formatText(res)}</span></strong>
+                    </div>`;
+            } else {
+                playBeep('error');
+                cell.className = 'td-wrong'; // Animação de tremor
+                updateInstruction(`❌ Incorreto! A geometria mostrou que a resposta certa é ${formatText(res)}.`, 'error');
+                
+                document.getElementById('formulaContainer').innerHTML = `
+                    <div class="math-formula-box error-box">
+                        <strong>${formatText(selRow)} <span style="font-size: 20px; vertical-align: middle;">∘</span> ${formatText(selCol)} = ${formatText(res)}</strong>
+                    </div>`;
+                
+                // Corrige a tabela automaticamente
+                setTimeout(() => {
+                    cell.innerHTML = formatText(res);
+                    cell.className = 'filled highlight';
+                }, 2500);
+            }
+        } else {
+            // Modo Estudo Normal
+            playBeep('success');
+            cell.innerHTML = formatText(res); 
+            cell.className = 'filled highlight';
+            updateInstruction('🎉 Animação finalizada!', 'success');
+            document.getElementById('formulaContainer').innerHTML = `
+                <div class="math-formula-box">
+                    <strong>${formatText(selRow)} <span style="color:var(--text-muted); font-size: 20px; vertical-align: middle;">∘</span> ${formatText(selCol)} = <span style="color:#27ae60;">${formatText(res)}</span></strong>
+                </div>`;
+        }
+
+        tableMemory[curGroup][`${selRow}-${selCol}`] = res;
+        
+        isNextMode = true;
+        isAnimating = false;
+        runBtn.classList.add('next-mode');
+        runBtn.textContent = 'Limpar Tela e Continuar ➔';
+        runBtn.disabled = false;
+    };
+
+    // --- TOGGLES DO CABEÇALHO ---
+    document.getElementById('themeToggle').onclick = function() {
+        document.body.classList.toggle('dark-mode');
+        this.classList.toggle('active');
+        playBeep('click');
+    };
+    
+    document.getElementById('soundToggle').onclick = function() {
+        soundEnabled = !soundEnabled;
+        this.classList.toggle('active');
+        this.textContent = soundEnabled ? '🔈 Som' : '🔇 Mudo';
+        if(soundEnabled) playBeep('click');
+    };
+    
+    document.getElementById('orbitToggle').onclick = function() {
+        document.getElementById('canvasArea').classList.toggle('show-orbits');
+        this.classList.toggle('active');
+        playBeep('click');
+    };
+
+    document.getElementById('groupSelect').onchange = init;
+    init();
+</script>
+</body>
+</html>
